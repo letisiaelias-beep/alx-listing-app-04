@@ -1,29 +1,51 @@
-import { PROPERTYLISTINGSAMPLE } from "@/constants";
-import { PropertyProps } from "@/interfaces";
+import { useEffect, useState } from "react";
+import api from "@/lib/api";
+import PropertyCard from "../components/property/PropertyCard";
+
+type Property = {
+  id: string | number;
+  title: string;
+  price?: number;
+  location?: string;
+  images?: string[];
+  shortDescription?: string;
+};
 
 export default function Home() {
-  return (
-    <div>
-      {/* Hero Section */}
-      <section
-        className="h-64 bg-cover bg-center flex flex-col items-center justify-center text-white"
-        style={{ backgroundImage: "url('https://example.com/hero.jpg')" }}
-      >
-        <h1 className="text-3xl font-bold">Find your favorite place here!</h1>
-        <p>The best prices for over 2 million properties worldwide.</p>
-      </section>
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-      {/* Listing Section */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
-        {PROPERTYLISTINGSAMPLE.map((property: PropertyProps, index: number) => (
-          <div key={index} className="border rounded p-4 shadow hover:shadow-lg">
-            <img src={property.image} alt={property.name} className="w-full h-40 object-cover rounded" />
-            <h2 className="font-bold mt-2">{property.name}</h2>
-            <p>${property.price}/night</p>
-            <p>⭐ {property.rating}</p>
-          </div>
-        ))}
-      </section>
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchProperties() {
+      try {
+        setLoading(true);
+        setError(null);
+        const resp = await api.get<Property[]>("/properties");
+        if (!cancelled) setProperties(resp.data || []);
+      } catch (err: any) {
+        console.error("Error fetching properties:", err);
+        if (!cancelled) setError(err?.message || "Failed to load properties");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    fetchProperties();
+    return () => { cancelled = true; };
+  }, []);
+
+  if (loading) return <div className="p-8 text-center">Loading properties…</div>;
+  if (error) return <div className="p-8 text-center text-red-600">Error: {error}</div>;
+  if (properties.length === 0) return <div className="p-8 text-center">No properties found.</div>;
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
+      {properties.map((property) => (
+        <PropertyCard key={property.id} property={property} />
+      ))}
     </div>
   );
 }
