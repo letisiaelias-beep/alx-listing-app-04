@@ -1,11 +1,26 @@
-import Layout from "@/components/layout/Layout";
-import "@/styles/globals.css";
-import type { AppProps } from "next/app";
+export default function Page(props: {
+  loading: boolean;
+  property?: any;
+  PropertyDetail?: any;
+  ReviewSection?: any;
+}) {
+  const { loading, property, PropertyDetail, ReviewSection } = props;
 
-export default function App({ Component, pageProps }: AppProps) {
   return (
-    <Layout>
-      <Component {...pageProps} />
-    </Layout>
+    <>
+      {loading ? (
+        <p>Loading...</p>
+      ) : !property ? (
+        <p>Property not found</p>
+      ) : (
+        <>
+          <PropertyDetail property={property} />
+          <div className="mt-6">
+            <h2 className="text-lg font-semibold">Reviews</h2>
+            <ReviewSection propertyId={property.id} />
+          </div>
+        </>
+      )}
+    </>
   );
 }

@@ -25,7 +25,7 @@ export default function ReviewSection({ propertyId }: { propertyId: string | num
         setLoading(true);
         setError(null);
 
-        // Primary attempt
+        // Primary attempt: /properties/:id/reviews
         try {
           const res = await api.get<Review[]>(`/properties/${propertyId}/reviews`);
           if (!cancelled) {
@@ -33,10 +33,10 @@ export default function ReviewSection({ propertyId }: { propertyId: string | num
             return;
           }
         } catch (err) {
-          // Try fallback below
+          // swallow and try fallback below
         }
 
-        // Fallback for json-server
+        // Fallback: /reviews?propertyId=:id (common for json-server)
         try {
           const res2 = await api.get<Review[]>(`/reviews?propertyId=${propertyId}`);
           if (!cancelled) {
@@ -72,11 +72,7 @@ export default function ReviewSection({ propertyId }: { propertyId: string | num
             <span className="text-sm text-gray-600">{r.rating ?? "-"}/5</span>
           </div>
           {r.comment && <p className="mt-2 text-sm text-gray-700">{r.comment}</p>}
-          {r.createdAt && (
-            <div className="mt-1 text-xs text-gray-400">
-              {new Date(r.createdAt).toLocaleString()}
-            </div>
-          )}
+          {r.createdAt && <div className="mt-1 text-xs text-gray-400">{new Date(r.createdAt).toLocaleString()}</div>}
         </div>
       ))}
     </div>
